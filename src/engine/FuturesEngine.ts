@@ -2,10 +2,6 @@ import type { GameState, Future, Position } from '../types.ts';
 import { Grid } from '../state/Grid.ts';
 import { samplePlayerMove, sampleEnemyMove, directionString } from './movement.ts';
 
-function cloneState(state: GameState): GameState {
-  return structuredClone(state);
-}
-
 function enemyLabel(id: string): string {
   if (id === 'sentinel-alpha') return 'Sentinel Alpha';
   if (id === 'sentinel-beta') return 'Sentinel Beta';
@@ -84,7 +80,7 @@ function positionsEqual(a: Position, b: Position): boolean {
 }
 
 function simulateOneFuture(state: GameState): GameState {
-  const next = cloneState(state);
+  const next = structuredClone(state);
   next.turn = state.turn; // turn increments on accept
 
   // Move player
@@ -112,37 +108,32 @@ function simulateOneFuture(state: GameState): GameState {
 }
 
 export function generateFutures(state: GameState, n: number): Future[] {
-  const futures: Future[] = [];
-  let retries = 0;
   const maxRetries = 3;
+  let futures: Future[] = [];
 
-  while (futures.length < n && retries < n + maxRetries * n) {
-    const newState = simulateOneFuture(state);
-    const quality = computeQuality(state, newState);
-    const description = generateDescription(state, newState);
-    futures.push({ state: newState, description, quality });
+  for (let retries = 0; retries <= maxRetries; retries++) {
+    // Fill up to n futures
+    while (futures.length < n) {
+      const newState = simulateOneFuture(state);
+      const quality = computeQuality(state, newState);
+      const description = generateDescription(state, newState);
+      futures.push({ state: newState, description, quality });
+    }
 
-    // Check variance if we have enough
-    if (futures.length === n) {
-      const qualities = futures.map(f => f.quality);
-      const spread = Math.max(...qualities) - Math.min(...qualities);
+    // Check if quality spread is sufficient
+    const qualities = futures.map(f => f.quality);
+    const spread = Math.max(...qualities) - Math.min(...qualities);
+    if (spread >= 0.3 || retries === maxRetries) break;
 
-      if (spread < 0.3 && retries < maxRetries) {
-        // Remove the worst and regenerate
-        let worstIdx = 0;
-        for (let i = 1; i < futures.length; i++) {
-          if (Math.abs(futures[i].quality - futures[0].quality) < Math.abs(futures[worstIdx].quality - futures[0].quality)) {
-            worstIdx = i;
-          }
-        }
-        futures.splice(worstIdx, 1);
-        retries++;
+    // Remove the future most similar in quality to the first, then regenerate
+    let mostSimilarIdx = 1;
+    for (let i = 2; i < futures.length; i++) {
+      if (Math.abs(futures[i].quality - futures[0].quality) < Math.abs(futures[mostSimilarIdx].quality - futures[0].quality)) {
+        mostSimilarIdx = i;
       }
     }
+    futures.splice(mostSimilarIdx, 1);
   }
 
-  // Ensure we have exactly n
-  while (futures.length > n) futures.pop();
-
-  return futures;
+  return futures.slice(0, n);
 }

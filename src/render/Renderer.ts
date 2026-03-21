@@ -10,7 +10,6 @@ export class Renderer {
   private entityRenderer: EntityRenderer;
   private futureOverlay: FutureOverlay;
   private goalPulse = 0;
-  private animFrameId = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     canvas.width = CONFIG.GRID_COLS * CONFIG.CELL_SIZE;
@@ -26,13 +25,9 @@ export class Renderer {
   startPulse(): void {
     const tick = () => {
       this.goalPulse += 0.05;
-      this.animFrameId = requestAnimationFrame(tick);
+      requestAnimationFrame(tick);
     };
-    this.animFrameId = requestAnimationFrame(tick);
-  }
-
-  stopPulse(): void {
-    cancelAnimationFrame(this.animFrameId);
+    requestAnimationFrame(tick);
   }
 
   render(state: GameState, futurePreview?: Future): void {
@@ -58,13 +53,5 @@ export class Renderer {
     if (futurePreview) {
       this.futureOverlay.render(state, futurePreview);
     }
-  }
-
-  getWidth(): number {
-    return CONFIG.GRID_COLS * CONFIG.CELL_SIZE;
-  }
-
-  getHeight(): number {
-    return CONFIG.GRID_ROWS * CONFIG.CELL_SIZE;
   }
 }

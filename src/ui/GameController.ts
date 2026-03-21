@@ -118,15 +118,11 @@ export class GameController {
     this.state = future.state;
     this.state.turn = prevTurn + 1;
 
-    if (this.state.status === 'won') {
-      this.phase = 'won';
-      this.render();
-    } else if (this.state.status === 'lost') {
-      this.phase = 'lost';
+    if (this.state.status === 'won' || this.state.status === 'lost') {
+      this.phase = this.state.status;
       this.render();
     } else {
       this.phase = 'playing';
-      // Next turn
       this.generateTurn();
     }
   }
@@ -134,29 +130,27 @@ export class GameController {
   private render(): void {
     const ctx = this.canvas.getContext('2d')!;
 
-    if (this.phase === 'title') {
-      renderTitleScreen(ctx);
-      this.updateButtons(false, false);
-      this.futureInfo.textContent = '';
-    } else if (this.phase === 'won') {
-      renderWinScreen(ctx, this.state.turn);
-      this.updateButtons(false, false);
-      this.futureInfo.textContent = '';
-    } else if (this.phase === 'lost') {
-      renderLoseScreen(ctx, this.state.turn);
-      this.updateButtons(false, false);
-      this.futureInfo.textContent = '';
-    } else if (this.phase === 'choosing') {
+    if (this.phase === 'choosing') {
       const preview = this.turnManager.currentFuture ?? undefined;
       this.renderer.render(this.state, preview);
       this.hud.render(this.state, this.turnManager, this.description);
       this.updateButtons(true, !this.turnManager.isLastFuture);
       this.futureInfo.textContent = this.description;
+      return;
+    }
+
+    // Non-choosing phases: render the appropriate screen
+    if (this.phase === 'title') {
+      renderTitleScreen(ctx);
+    } else if (this.phase === 'won') {
+      renderWinScreen(ctx, this.state.turn);
+    } else if (this.phase === 'lost') {
+      renderLoseScreen(ctx, this.state.turn);
     } else {
       this.renderer.render(this.state);
-      this.updateButtons(false, false);
-      this.futureInfo.textContent = '';
     }
+    this.updateButtons(false, false);
+    this.futureInfo.textContent = '';
   }
 
   private updateButtons(showAccept: boolean, showPass: boolean): void {
