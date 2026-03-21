@@ -1,11 +1,16 @@
 import './style.css';
 import { GameController } from './ui/GameController.ts';
 
-// Wait for fonts to load before initializing
-document.fonts.ready.then(() => {
+function init(): void {
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
   if (!canvas) {
-    throw new Error('Canvas element not found');
+    document.body.textContent = 'Error: Canvas element not found';
+    return;
   }
   new GameController(canvas);
+}
+
+document.fonts.ready.then(init).catch(() => {
+  // Font loading failed or timed out — initialize anyway
+  init();
 });

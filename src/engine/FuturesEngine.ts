@@ -120,10 +120,13 @@ export function generateFutures(state: GameState, n: number): Future[] {
       futures.push({ state: newState, description, quality });
     }
 
+    // Skip diversity check when only one future requested
+    if (n <= 1 || retries === maxRetries) break;
+
     // Check if quality spread is sufficient
     const qualities = futures.map(f => f.quality);
     const spread = Math.max(...qualities) - Math.min(...qualities);
-    if (spread >= 0.3 || retries === maxRetries) break;
+    if (spread >= 0.3) break;
 
     // Remove the future most similar in quality to the first, then regenerate
     let mostSimilarIdx = 1;

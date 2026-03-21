@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "for f in tests/*.test.ts; do npx tsx \"$f\" || exit 1; done"
   },
   "devDependencies": {
     "typescript": "~5.9.3",

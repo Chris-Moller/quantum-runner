@@ -35,7 +35,6 @@ export class GameController {
     this.futureInfo = document.getElementById('future-info') as HTMLElement;
 
     this.setupInputs();
-    this.renderer.startPulse();
     this.render();
   }
 

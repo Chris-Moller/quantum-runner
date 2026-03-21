@@ -9,7 +9,7 @@ export class Renderer {
   private gridRenderer: GridRenderer;
   private entityRenderer: EntityRenderer;
   private futureOverlay: FutureOverlay;
-  private goalPulse = 0;
+  private startTime = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     canvas.width = CONFIG.GRID_COLS * CONFIG.CELL_SIZE;
@@ -20,14 +20,11 @@ export class Renderer {
     this.gridRenderer = new GridRenderer(ctx);
     this.entityRenderer = new EntityRenderer(ctx);
     this.futureOverlay = new FutureOverlay(ctx, this.entityRenderer);
+    this.startTime = performance.now();
   }
 
-  startPulse(): void {
-    const tick = () => {
-      this.goalPulse += 0.05;
-      requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
+  private get goalPulse(): number {
+    return (performance.now() - this.startTime) * 0.003;
   }
 
   render(state: GameState, futurePreview?: Future): void {
